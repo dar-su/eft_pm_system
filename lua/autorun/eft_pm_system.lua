@@ -205,13 +205,27 @@ if SERVER then
 		EFTPMS.UpdatePM_SV( ply )
 	end )
 
-	hook.Add( "CreateEntityRagdoll", "eftpms_ragdolls", function( ply, rag )
-    	if !IsValid(ply) or !ply:IsPlayer() or !IsValid(rag) or !EFTPMS.IsActive( ply ) then return end
+	local function sendragdollingrequest(ply, rag)
+		if !IsValid(ply) or !ply:IsPlayer() or !IsValid(rag) or !EFTPMS.IsActive( ply ) then return end
 		net.Start("eftpms_ragdolling")
 		net.WritePlayer( ply )
 		net.WriteEntity( rag )
 		net.Broadcast()
-	end)
+	end
+
+	hook.Add( "CreateEntityRagdoll", "eftpms_ragdolls", sendragdollingrequest)
+
+	if CVAR_ARag_enab_d then -- complex death animation mods (FUCKING SUCKS WHY THERES NO HOOKS OR ANYTHING)
+		hook.Add("OnEntityCreated", "eftpms_entthing", function(ent)
+			if ent:IsRagdoll() then
+				timer.Simple(0, function()
+					if ent.ARag then
+						sendragdollingrequest(ent.OwnerPLY, ent)
+					end
+				end)
+			end
+		end)
+	end
 
     return
 end
@@ -326,7 +340,7 @@ local function transferpartsownership(ply, rag)
 end
 
 hook.Add( "CreateClientsideRagdoll", "eftpms_ragdolls", function( ply, rag )
-    if !IsValid(ply) or !IsValid(rag) or !EFTPMS.IsActive( ply ) then return end
+    if !IsValid(ply) or !IsValid(rag) or !EFTPMS.IsActive( ply ) or CVAR_ARag_enab_d then return end
 	transferpartsownership(ply, rag)
 end)
 
