@@ -230,6 +230,18 @@ if SERVER then
 		end)
 	end
 
+	if fedhoria or DMS then -- fedhoria (even worse somehow) and artagdoll
+		hook.Add("OnEntityCreated", "eftpms_entthing", function(ent)
+			if ent:IsRagdoll() then
+				timer.Simple(0, function()
+					for _, ply in player.Iterator() do
+						sendragdollingrequest(ply, ply:GetRagdollEntity())
+					end
+				end)
+			end
+		end)
+	end
+
     return
 end
 
