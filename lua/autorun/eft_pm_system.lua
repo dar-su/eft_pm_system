@@ -390,6 +390,12 @@ timer.Simple(0, function()
 	end
 end)
 
+
+hook.Add("PreDrawBody", "eftpms_fpbody", function(legs) -- First-Person Body
+	drawlegs(LocalPlayer(), legs)
+end)
+
+
 local function transferpartsownership(ply, rag, returnlater)
 	if ply.EFTPMS_Parts then
 		rag.EFTPMS_Parts = table.Copy(ply.EFTPMS_Parts)
