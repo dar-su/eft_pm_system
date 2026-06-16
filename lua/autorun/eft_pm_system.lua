@@ -299,6 +299,8 @@ function EFTPMS.AttachPart( partType, ply )
             	partmodel:SetBodygroup(0, ply:GetInfoNum("eftpms_cl_torso_fix", "0") or 0)
 			elseif partType == "Head" then
             	partmodel:SetBodygroup(0, ply:GetInfoNum("eftpms_cl_head_fix", "0") or 0)
+			elseif partType == "Legs" then
+				ply.EFTPMS_Legs = data
 			end
 
 			if data.bodygroups then partmodel:SetBodyGroups(data.bodygroups) end
@@ -345,6 +347,47 @@ hook.Add("PrePlayerDraw", "zz_eftpms", function(ply, flags)
 			end
 		end
     end
+end)
+
+
+local function drawlegs(ply, actuallegent)
+	if !EFTPMS.IsActiveEz( ply ) then return end
+	local legdata = ply.EFTPMS_Legs
+	if !legdata then return end
+	local legmdl = legdata.CSEnt
+	if !IsValid(legmdl) then
+        legmdl = ClientsideModel( legdata.model, RENDERGROUP_OPAQUE )
+
+        if IsValid( legmdl ) then
+            legmdl:SetNoDraw( true )
+            legmdl:SetParent( actuallegent )
+            legmdl:AddEffects( EF_BONEMERGE )
+            legmdl:AddEffects( EF_BONEMERGE_FASTCULL )
+			if legdata.bodygroups then legmdl:SetBodyGroups(legdata.bodygroups) end
+			legdata.CSEnt = legmdl
+			if debugmode then print("EFTPMS: Created Legs compat", legmdl) end
+		end
+	else
+        legmdl:SetParent( actuallegent )
+		legmdl:DrawModel()
+	end
+end
+
+timer.Simple(0, function()
+	if CLegs then -- CLegs compat, needs a timer to detect ??
+		hook.Add("PostDrawTranslucentRenderables", "zz_eftpms_CLegsDoRender", function(bDepth, bSkybox, b3dSkybox)
+			if bSkybox or b3dSkybox then return end
+			local ply = LocalPlayer()
+			local legEnt = ply.LegEnt
+
+			if legEnt and IsValid(legEnt) then
+				legEnt.RenderOverride = function(self)
+					-- self:DrawModel()
+					drawlegs(ply, legEnt)
+				end
+			end
+		end)
+	end
 end)
 
 local function transferpartsownership(ply, rag, returnlater)
