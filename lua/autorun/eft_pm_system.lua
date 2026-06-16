@@ -407,7 +407,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 
 		local mdl = container:Add( "DModelPanel" )
 		mdl:Dock( FILL )
-		mdl:SetFOV( 16 )
+		mdl:SetFOV( 12 )
 		mdl:SetCamPos( vector_origin )
 		mdl:SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80, 255 ) )
 		mdl:SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255, 255 ) )
@@ -494,14 +494,14 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 
         mdl.ApplyButton = window:Add( "DButton" )
         mdl.ApplyButton:SetSize( 120, 30 )
-        mdl.ApplyButton:SetPos( 400, 30 )
+        mdl.ApplyButton:SetPos( 280, 30 )
         mdl.ApplyButton:SetText( "Apply playermodel" )
         mdl.ApplyButton:SetEnabled( LocalPlayer():IsAdmin() or instaswitchcvar:GetBool() )
         mdl.ApplyButton.DoClick = EFTPMS.SendPM
 
 		local rightPnl = container:Add( "DPanel" )
 		rightPnl:Dock( RIGHT )
-		rightPnl:SetWide( 430 )
+		rightPnl:SetWide( 550 )
 		rightPnl.Paint = function() end
 
 		local settings = rightPnl:Add( "DPanel" )

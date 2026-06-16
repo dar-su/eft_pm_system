@@ -1,5 +1,7 @@
 "VertexLitGeneric"
 {
-	"$basetexture" "models/eft/pmc/Bear_head_0_diff"
+	$basetexture "models/debug/debugwhite"
 	$no_draw "1"
+	$additive "1"
+	$nocull "1"
 }
