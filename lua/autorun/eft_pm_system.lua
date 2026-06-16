@@ -8,15 +8,15 @@ local mixingcvar = CreateConVar( "eftpms_allow_mixing", "1", SERVER and { FCVAR_
 EFTPMS = EFTPMS or {}
 
 EFTPMS.AllowedPMName = "EFT - Base Sweater"
-EFTPMS.AllowedPM = "models/eft/pmc/shared/sweater_bear0_test.mdl"
-EFTPMS.FallbackHands = "models/eft/hands/hand_arena_bear_turtle.mdl"
+EFTPMS.AllowedPM = "models/eft/pmc/shared/sweater_bear0.mdl"
+EFTPMS.FallbackHands = "models/eft/hands/hand_shared_sweater.mdl"
 
 EFTPMS.Teams = { -- id, printname, icon
-	{ "bear", "BEAR", "eft_16.png" },
-	{ "usec", "USEC", "eft_16.png" },
-	{ "scav", "Scav", "eft_16.png" },
-	{ "boss", "Bosses", "eft_16.png" },
-	{ "other", "Other", "arc9/ahmad.png" },
+	{ "bear", "BEAR", "eft_pm_system/icon_bear_16.png" },
+	{ "usec", "USEC", "eft_pm_system/icon_usec_16.png" },
+	{ "scav", "Scav", "eft_pm_system/icon_scav_16.png" },
+	{ "boss", "Bosses", "eft_pm_system/icon_scav_16.png" },
+	{ "other", "Other", "eft_pm_system/icon_scav_16.png" },
 }
 
 EFTPMS.SlotList = { "Head", "Torso", "Legs" } -- important
@@ -360,7 +360,7 @@ local menuPartsCSModels = {}
 
 list.Set( "DesktopWindows", "EFTPMS_Widget", {
 	title		= "EFT PM System",
-	icon		= "arc9/ahmad.png",
+	icon		= "eft_pm_system/ahper.png",
 	width		= 960,
 	height		= 700,
 	onewindow	= true,
