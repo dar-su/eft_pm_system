@@ -373,25 +373,7 @@ local function drawlegs(ply, actuallegent)
 	end
 end
 
-timer.Simple(0, function()
-	if CLegs then -- CLegs compat, needs a timer to detect ??
-		hook.Add("PostDrawTranslucentRenderables", "zz_eftpms_CLegsDoRender", function(bDepth, bSkybox, b3dSkybox)
-			if bSkybox or b3dSkybox then return end
-			local ply = LocalPlayer()
-			local legEnt = ply.LegEnt
-
-			if legEnt and IsValid(legEnt) then
-				legEnt.RenderOverride = function(self)
-					-- self:DrawModel()
-					drawlegs(ply, legEnt)
-				end
-			end
-		end)
-	end
-end)
-
-
-hook.Add("PreDrawBody", "eftpms_fpbody", function(legs) -- First-Person Body
+hook.Add("PreDrawBody", "eftpms_fpbody", function(legs) -- First-Person Body support
 	drawlegs(LocalPlayer(), legs)
 end)
 
@@ -439,6 +421,19 @@ hook.Add("Think", "eftpms_validate", function()
 			ply:SetNW2Bool( "EFTPMS_Active", active )
 			if active then
 				if ply:GetBodygroup(1) == 0 then ply:SetBodyGroups( "111" ) end
+			end
+		end
+
+		local ply = LocalPlayer()
+
+		if CLegs or g_Legs then -- CLegs and GLegs support
+			local legEnt = CLegs and ply.LegEnt or g_Legs.LegEnt
+			if legEnt and IsValid(legEnt) then
+				legEnt.RenderOverride = function(self)
+					self:DrawModel()
+					if g_Legs then self:SetBodygroup(2,1) end -- just in case
+					drawlegs(ply, legEnt)
+				end
 			end
 		end
 	end
