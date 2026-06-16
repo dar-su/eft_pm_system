@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/eft/pmc/Bear_head_0_diff"
+	$no_draw "1"
+}
