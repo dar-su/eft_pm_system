@@ -172,17 +172,20 @@ if SERVER then
     end)
 
 
+	local function forcehands(ply, ent)
+		if IsValid(ent) then
+			local data = EFTPMS.GetPartData("Torso", ply:GetNW2Int( "EFTPMS_Torso", 0))
+			ent:SetModel( data.hands or EFTPMS.FallbackHands )
+
+			if data.handsbodygroups then hands_ent:SetBodyGroups(data.handsbodygroups) end
+			if data.handsskin then hands_ent:SetSkin(data.handsskin) end
+		end
+	end
+
 	hook.Add( "PlayerSetHandsModel", "eftpms_hands", function( ply, ent )
 		if EFTPMS.IsActive(ply) then
-			timer.Simple( 0.05, function()
-				if IsValid(ent) then
-					local data = EFTPMS.GetPartData("Torso", ply:GetNW2Int( "EFTPMS_Torso", 0))
-					ent:SetModel( data.hands or EFTPMS.FallbackHands )
-
-					if data.handsbodygroups then hands_ent:SetBodyGroups(data.handsbodygroups) end
-					if data.handsskin then hands_ent:SetSkin(data.handsskin) end
-				end
-			end)
+			forcehands(ply, ent)
+			timer.Simple( 0.1, function() forcehands(ply, ent) end)
 		end
 	end )
 
