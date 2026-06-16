@@ -208,11 +208,12 @@ if SERVER then
 		EFTPMS.UpdatePM_SV( ply )
 	end )
 
-	local function sendragdollingrequest(ply, rag)
+	local function sendragdollingrequest(ply, rag, returnlater)
 		if !IsValid(ply) or !ply:IsPlayer() or !IsValid(rag) or !EFTPMS.IsActive( ply ) then return end
 		net.Start("eftpms_ragdolling")
 		net.WritePlayer( ply )
 		net.WriteEntity( rag )
+		net.WriteBool(!!returnlater)
 		net.Broadcast()
 	end
 
@@ -230,12 +231,25 @@ if SERVER then
 		end)
 	end
 
-	if fedhoria or DMS then -- fedhoria (even worse somehow) and artagdoll
-		hook.Add("OnEntityCreated", "eftpms_entthing", function(ent)
+	if fedhoria or DMS or zb then -- fedhoria/gphoria, artagdoll, zcity
+		hook.Add("OnEntityCreated", "eftpms_entthing2", function(ent)
 			if ent:IsRagdoll() then
 				timer.Simple(0, function()
 					for _, ply in player.Iterator() do
 						sendragdollingrequest(ply, ply:GetRagdollEntity())
+					end
+				end)
+			end
+		end)
+	end
+
+	if BSModKick then
+		hook.Add( "OnEntityCreated", "eftpms_entthing3", function( ent )
+			if ent:GetClass() == "ent_km_model" then
+				timer.Simple(0, function()
+					local ply = ent:GetOwner()
+					if ply and ply:IsPlayer() then
+						sendragdollingrequest(ply, ent, true)
 					end
 				end)
 			end
@@ -326,14 +340,14 @@ hook.Add("PrePlayerDraw", "zz_eftpms", function(ply, flags)
 
 	if ply.EFTPMS_Parts then
 		for _, partmodel in ipairs( ply.EFTPMS_Parts ) do
-			if IsValid(partmodel) then
+			if IsValid(partmodel) and !ply:GetNoDraw() and ply:GetMaterial() != "null" then
 				partmodel:DrawModel()
 			end
 		end
     end
 end)
 
-local function transferpartsownership(ply, rag)
+local function transferpartsownership(ply, rag, returnlater)
 	if ply.EFTPMS_Parts then
 		rag.EFTPMS_Parts = table.Copy(ply.EFTPMS_Parts)
 		ply.EFTPMS_Parts = {}
@@ -344,6 +358,7 @@ local function transferpartsownership(ply, rag)
 				partmodel:SetParent( rag )
 				partmodel.RenderOverride = function(self)
 					if !IsValid(self:GetParent()) then
+						if returnlater then EFTPMS.RefreshPM(ply) end
 						self:Remove()
 					else
 						self:DrawModel()
@@ -360,8 +375,8 @@ hook.Add( "CreateClientsideRagdoll", "eftpms_ragdolls", function( ply, rag )
 end)
 
 net.Receive("eftpms_ragdolling", function( len, ply )
-	local ply, rag = net.ReadPlayer(), net.ReadEntity()
-    transferpartsownership(ply, rag)
+	local ply, rag, returnlater = net.ReadPlayer(), net.ReadEntity(), net.ReadBool()
+    transferpartsownership(ply, rag, returnlater)
 end)
 
 local nextvalidate = 0
