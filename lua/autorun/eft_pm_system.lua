@@ -400,6 +400,9 @@ end)
 
 hook.Add("VManipPostPlayAnim", "eftpms_fp_vmanip", function(a) -- vmanip legs support
 	local legs = VMLegs and VMLegs.LegModel
+
+	if GCAL then legs = GCAL.ActiveTracks["legs"] and GCAL.ActiveTracks["legs"].legModel end -- fucking renamed ai slop
+
 	if legs then
 		legs.RenderOverride = function(self)
 			self:DrawModel()
