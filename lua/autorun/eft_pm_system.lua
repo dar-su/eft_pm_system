@@ -79,7 +79,7 @@ function EFTPMS.IsActive( ply )
 end
 
 function EFTPMS.IsActiveEz( ply )
-	return ply:GetNW2Bool( "EFTPMS_Active", false )
+	return ply:GetNWBool( "EFTPMS_Active", false )
 end
 
 function EFTPMS.GetPartList( partType )
@@ -359,6 +359,7 @@ hook.Add("PrePlayerDraw", "zz_eftpms", function(ply, flags)
     end
 end)
 
+-- compatiblity shit
 
 local function drawlegs(ply, actuallegent)
 	if !EFTPMS.IsActiveEz( ply ) then return end
@@ -452,7 +453,7 @@ hook.Add("Think", "eftpms_validate", function()
 		nextvalidate = ct + 1
 		for _, ply in player.Iterator() do
 			local active = ply:GetModel() == EFTPMS.AllowedPM
-			ply:SetNW2Bool( "EFTPMS_Active", active )
+			ply:SetNWBool( "EFTPMS_Active", active )
 			if active then
 				if ply:GetBodygroup(1) == 0 then ply:SetBodyGroups( "111" ) end
 			end
