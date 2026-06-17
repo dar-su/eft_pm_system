@@ -95,6 +95,7 @@ end
 if SERVER then
     util.AddNetworkString("eftpms_update_model")
     util.AddNetworkString("eftpms_ragdolling")
+    util.AddNetworkString("eftpms_legscreation")
     
     function EFTPMS.UpdatePM_SV( ply )
 		if !EFTPMS.IsActive( ply ) then return end
@@ -256,6 +257,15 @@ if SERVER then
 		end)
 	end
 
+	if MFEffect then -- mighty foot enganged
+		net.Receive("EngageMF", function(l,ply)
+			timer.Simple(0.1, function()
+				net.Start("eftpms_legscreation")
+				net.Send(ply)
+			end)
+		end)
+	end
+
     return
 end
 
@@ -375,6 +385,27 @@ end
 
 hook.Add("PreDrawBody", "eftpms_fpbody", function(legs) -- First-Person Body support
 	drawlegs(LocalPlayer(), legs)
+end)
+
+net.Receive("eftpms_legscreation", function( len, ply ) -- mighty foot enganged support
+	local lp = LocalPlayer()
+	if lp.MFLeg then
+		local oldRO = lp.MFLeg.RenderOverride
+		lp.MFLeg.RenderOverride = function(self)
+			oldRO(self)
+			drawlegs(lp, self)
+		end
+	end
+end)
+
+hook.Add("VManipPostPlayAnim", "eftpms_fp_vmanip", function(a) -- vmanip legs support
+	local legs = VMLegs and VMLegs.LegModel
+	if legs then
+		legs.RenderOverride = function(self)
+			self:DrawModel()
+			drawlegs(LocalPlayer(), legs)
+		end
+	end
 end)
 
 
