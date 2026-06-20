@@ -15,9 +15,9 @@ local BasePMHands = "models/eft/hands/hand_shared_sweater.mdl"
 player_manager.AddValidModel( BasePMName, BasePMModel )
 player_manager.AddValidHands( BasePMName, BasePMHands, 0, "00000000" )
 
-EFTPMS.AllowedPMName = BasePMName
-EFTPMS.AllowedPM = BasePMModel
-EFTPMS.FallbackHands = BasePMHands
+EFTPMS.BasePMName = BasePMName -- not used really
+EFTPMS.BasePMModel = BasePMModel
+EFTPMS.BasePMHands = BasePMHands
 
 EFTPMS.Teams = { -- id, printname, icon
 	{ "bear", "BEAR", "eft_pm_system/icon_bear_16.png" },
@@ -83,7 +83,7 @@ function EFTPMS.ValidatePart( partType, partID, teamm )
 end
 
 function EFTPMS.IsActive( ply )
-	return ply:GetModel() == EFTPMS.AllowedPM
+	return ply:GetModel() == BasePMModel
 end
 
 function EFTPMS.IsActiveEz( ply )
@@ -131,7 +131,7 @@ if SERVER then
 		ply:SetBodyGroups( "111" )
 
 		timer.Simple( 0.1, function()
-			ply:SetModel( EFTPMS.AllowedPM )
+			ply:SetModel( BasePMModel )
 			ply:SetBodyGroups( "111" )
 
 			net.Start("eftpms_update_model")
@@ -145,7 +145,7 @@ if SERVER then
 			if data then
 				local hands_ent = ply:GetHands()
 				if IsValid(hands_ent) then
-					hands_ent:SetModel(data.hands or EFTPMS.FallbackHands)
+					hands_ent:SetModel(data.hands or BasePMHands)
 					
 					if data.handsbodygroups then hands_ent:SetBodyGroups(data.handsbodygroups) end
 					if data.handsskin then hands_ent:SetSkin(data.handsskin) end
@@ -184,7 +184,7 @@ if SERVER then
 	local function forcehands(ply, ent)
 		if IsValid(ent) then
 			local data = EFTPMS.GetPartData("Torso", ply:GetNW2Int( "EFTPMS_Torso", 0))
-			ent:SetModel( data.hands or EFTPMS.FallbackHands )
+			ent:SetModel( data.hands or BasePMHands )
 
 			if data.handsbodygroups then hands_ent:SetBodyGroups(data.handsbodygroups) end
 			if data.handsskin then hands_ent:SetSkin(data.handsskin) end
@@ -311,6 +311,7 @@ function EFTPMS.AttachPart( partType, ply )
             partmodel:SetParent( ply )
             partmodel:AddEffects( EF_BONEMERGE )
             partmodel:AddEffects( EF_BONEMERGE_FASTCULL )
+			partmodel.GetPlayerColor = function() return ply:GetPlayerColor() end
 			partmodel.Type = partType
 			partmodel.Data = data
 			if partType == "Torso" then
@@ -382,6 +383,7 @@ local function drawlegs(ply, actuallegent)
             legmdl:SetParent( actuallegent )
             legmdl:AddEffects( EF_BONEMERGE )
             legmdl:AddEffects( EF_BONEMERGE_FASTCULL )
+			legmdl.GetPlayerColor = function() return ply:GetPlayerColor() end
 			if legdata.bodygroups then legmdl:SetBodyGroups(legdata.bodygroups) end
 			legdata.CSEnt = legmdl
 			if debugmode then print("EFTPMS: Created Legs compat", legmdl) end
@@ -460,7 +462,7 @@ hook.Add("Think", "eftpms_validate", function()
 	if nextvalidate < ct then
 		nextvalidate = ct + 1
 		for _, ply in player.Iterator() do
-			local active = ply:GetModel() == EFTPMS.AllowedPM
+			local active = ply:GetModel() == BasePMModel
 			ply:SetNWBool( "EFTPMS_Active", active )
 			if active then
 				if ply:GetBodygroup(1) == 0 then ply:SetBodyGroups( "111" ) end
@@ -520,12 +522,12 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 		warnLbl:SetPos( 80, 200 )
 
 		local btnEnable = overlay:Add( "DButton" )
-		btnEnable:SetText( "Enable \"" .. EFTPMS.AllowedPMName .. "\" Playermodel" )
+		btnEnable:SetText( "Enable \"" .. BasePMName .. "\" Playermodel" )
 		btnEnable:SetSize( 250, 40 )
 		btnEnable:Center()
 		btnEnable:SetPos( 80, 300 )
 		btnEnable.DoClick = function()
-			RunConsoleCommand( "cl_playermodel", EFTPMS.AllowedPMName )
+			RunConsoleCommand( "cl_playermodel", BasePMName )
 			RunConsoleCommand( "playermodel_apply" ) -- custom selectors
 			timer.Simple( 0.1, EFTPMS.SendPM)
 			timer.Simple( 0.2, window.CheckActiveState)
@@ -581,7 +583,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			if not IsValid(mdl) then return end
 
 			if !mdl.Initted then
-				mdl:SetModel( EFTPMS.AllowedPM )
+				mdl:SetModel( BasePMModel )
             	mdl.Entity:SetBodyGroups( "111" )
 				local iSeq = mdl.Entity:LookupSequence( "eft_idle_menu" )
 				if ( iSeq > 0 ) then mdl.Entity:ResetSequence( iSeq ) end
@@ -603,6 +605,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 						p:SetNoDraw( true )
 						p:SetParent( mdl.Entity )
 						p:AddEffects( EF_BONEMERGE )
+						p.GetPlayerColor = function() return LocalPlayer():GetPlayerColor() end
 						
 						if partType == "Torso" then
 							p:SetBodygroup(0, torsofixcvar:GetInt() or 0)
