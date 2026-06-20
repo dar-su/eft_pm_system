@@ -1,2 +1,0 @@
-player_manager.AddValidModel( "EFT - Base Sweater", "models/eft/pmc/shared/sweater_bear0.mdl" )
-player_manager.AddValidHands( "EFT - Base Sweater", "models/eft/hands/hand_shared_sweater.mdl", 0, "00000000" )

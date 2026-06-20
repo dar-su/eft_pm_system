@@ -1,5 +1,6 @@
 -- :3
 
+
 local debugmode = true
 
 local instaswitchcvar = CreateConVar( "eftpms_instant_switch", "1", SERVER and { FCVAR_ARCHIVE, FCVAR_REPLICATED } or { FCVAR_REPLICATED }, "If enabled, players can instantly switch without respawning." )
@@ -7,9 +8,16 @@ local mixingcvar = CreateConVar( "eftpms_allow_mixing", "1", SERVER and { FCVAR_
 
 EFTPMS = EFTPMS or {}
 
-EFTPMS.AllowedPMName = "EFT - Base Sweater"
-EFTPMS.AllowedPM = "models/eft/pmc/shared/sweater_bear0.mdl"
-EFTPMS.FallbackHands = "models/eft/hands/hand_shared_sweater.mdl"
+local BasePMName = "EFT   Base Modular PM"
+local BasePMModel = "models/eft/pmc/shared/sweater_bear0.mdl"
+local BasePMHands = "models/eft/hands/hand_shared_sweater.mdl"
+
+player_manager.AddValidModel( BasePMName, BasePMModel )
+player_manager.AddValidHands( BasePMName, BasePMHands, 0, "00000000" )
+
+EFTPMS.AllowedPMName = BasePMName
+EFTPMS.AllowedPM = BasePMModel
+EFTPMS.FallbackHands = BasePMHands
 
 EFTPMS.Teams = { -- id, printname, icon
 	{ "bear", "BEAR", "eft_pm_system/icon_bear_16.png" },
