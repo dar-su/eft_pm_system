@@ -29,6 +29,13 @@ EFTPMS.Teams = { -- id, printname, icon
 	{ "other", "Other", "eft_pm_system/icon_scav_16.png" },
 }
 
+EFTPMS.TeamsHands = { -- id = name, wsid, fallback
+	["bear"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_bear_base.mdl" },
+	["usec"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_usec_base.mdl" },
+	["arena"] = { " EFT - Arena C_Hands ", 3743442210, "models/eft/hands/hand_bear_base.mdl" },
+	["scav"] = { " EFT - Scav C_Hands ", 2838300952 },
+}
+
 EFTPMS.SlotList = { "Head", "Torso", "Legs" } -- important
 local slotList = EFTPMS.SlotList
 
@@ -154,8 +161,8 @@ if SERVER then
 						if data.handsskin then hands_ent:SetSkin(data.handsskin) end
 					end
 				end
-			end
-        end )
+			end )
+		end
         
         hook.Run( "SetModel", ply, mdlpath )
     end
@@ -650,14 +657,15 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 
 		local mixing = settings:Add( "DCheckBoxLabel" )
 		mixing:Dock( LEFT )
-		mixing:SetText( "Allow mixing parts from different teams?        " )
+		mixing:DockMargin( 0, 0, 50, 0 )
+		mixing:SetText( "Allow mixing parts from different teams" )
 		mixing:SetConVar( "eftpms_allow_mixing" )
 		mixing:SizeToContents()
 		mixing:SetDark(true)
 
 		local instant = settings:Add( "DCheckBoxLabel" )
 		instant:Dock( LEFT )
-		instant:SetText( "Allow instant switch?" )
+		instant:SetText( "Allow instant switch" )
 		instant:SetConVar( "eftpms_instant_switch" )
 		instant:SizeToContents()
 		instant:SetDark(true)
@@ -689,7 +697,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			UpdatePreviewModel()
 		end
 		
-		local textt = { "Deform Upper (Armor)     ", "Deform Upper (Chest Rig)        ", "Deform Head" }
+		local textt = { "Deform Upper (Armor)     ", "Deform Upper (Chest Rig)       ", "Deform Head" }
 
 		for i = 1, 2 do
 			local radio = settings2:Add( "DCheckBoxLabel" )
@@ -697,6 +705,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			radio:SetText( textt[i] )
 			radio:SizeToContents()
 			radio:SetDark(true)
+			radio:DockMargin( 0, 0, 20, 0 )
 			radioButtons[i] = radio
 			
 			radio.OnChange = function(self, value)
@@ -707,14 +716,60 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 		UpdateRadioButtons()
 
 		local radio3 = settings2:Add( "DCheckBoxLabel" )
-		radio3:Dock( LEFT )
+		radio3:Dock( RIGHT )
 		radio3:SetText( textt[3] )
 		radio3:SizeToContents()
 		radio3:SetDark(true)
 		radio3:SetConVar( "eftpms_cl_head_fix" )
+		radio3.OnChange = UpdatePreviewModel
+
 		
-		radio3.OnChange = function(self, value)
-			UpdatePreviewModel()
+		local function AddFuckingHandsNotice(parent, teamId)
+			if EFTPMS.TeamsHands[teamId] then
+				local name, wsid = EFTPMS.TeamsHands[teamId][1], EFTPMS.TeamsHands[teamId][2]
+				
+				local installed, unmounted = false, false
+
+				for _, addon in pairs(engine.GetAddons()) do
+					if tostring(wsid) == tostring(addon.wsid) then
+						if addon.mounted then 
+							installed = true
+							break
+						else
+							unmounted = true
+						end
+					end
+				end
+
+				if !installed then
+					local settings3 = parent:Add( "DPanel" )
+					settings3:Dock( BOTTOM )
+					settings3:DockMargin( 0, 0, 0, 8 )
+					settings3:DockPadding( 8, 8, 8, 8 )
+					settings3:SetTall( 33 )
+
+					local notice = settings3:Add( "DLabel" )
+					notice:Dock( LEFT )
+					notice:SetText( "Notice: you don't have" )
+					notice:SizeToContents()
+					notice:SetDark(true)
+					local notice2 = settings3:Add( "DButton" )
+					notice2:Dock( LEFT )
+					notice2:SetText( name )
+					notice2:DockMargin( 5, 0, 5, 0 )
+					notice2:DockPadding( 5, 0, 5, 0 )
+					notice2:SizeToContents()
+					notice2:SetDark(true)
+					notice2.DoClick = function()
+						gui.OpenURL( "https://steamcommunity.com/sharedfiles/filedetails/?id=" .. wsid )
+					end
+					local notice3 = settings3:Add( "DLabel" )
+					notice3:Dock( LEFT )
+					notice3:SetText( unmounted and "enabled (already installed but not mounted)" or "installed" .. ". Fallback c_hands will be used." )
+					notice3:SizeToContents()
+					notice3:SetDark(true)
+				end
+			end
 		end
 
 		local tabsToRebuild = {}
@@ -753,7 +808,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			if !teamhasitems(teamId) then return end
 
 			local pnl = vgui.Create( "DPanel" )
-			pnl:DockPadding( 8, 8, 8, 8 )
+			pnl:DockPadding( 8, 8, 8, 0 )
 
 			local scroll = pnl:Add( "DScrollPanel" )
 			scroll:Dock( FILL )
@@ -816,6 +871,8 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 					end
 				end
 			end
+
+			AddFuckingHandsNotice(pnl, teamId)
 
 			pnl.Rebuild()
 			table.insert( tabsToRebuild, pnl )
