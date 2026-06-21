@@ -32,8 +32,9 @@ EFTPMS.Teams = { -- id, printname, icon
 EFTPMS.TeamsHands = { -- id = name, wsid, fallback
 	["bear"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_bear_base.mdl" },
 	["usec"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_usec_base.mdl" },
+	["other"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_bear_base.mdl" },
 	["arena"] = { " EFT - Arena C_Hands ", 3743442210, "models/eft/hands/hand_bear_base.mdl" },
-	["scav"] = { " EFT - Scav C_Hands ", 2838300952 },
+	["scav"] = { " EFT - Scav C_Hands ", 2838300952, "models/eft/hands/hand_shared_sweater.mdl" },
 }
 
 EFTPMS.SlotList = { "Head", "Torso", "Legs" } -- important
@@ -103,6 +104,35 @@ function EFTPMS.GetPartList( partType )
 	return EFTPMS["Available_" .. partType]
 end
 
+local addonss = engine.GetAddons()
+
+local mountedhands = {}
+for teamId, teamInfo in pairs(EFTPMS.TeamsHands) do
+	local wsid = teamInfo[2]
+	mountedhands[teamId] = false
+	
+	if wsid then
+		for _, addon in pairs(addonss) do
+			if tostring(wsid) == tostring(addon.wsid) and addon.mounted then
+				mountedhands[teamId] = true
+				break
+			end
+		end
+	end
+end
+
+function EFTPMS.GetHands( ply )
+    local data = EFTPMS.GetPartData("Torso", ply:GetNW2Int("EFTPMS_Torso", 0))
+    if !data then return end
+
+    local teamdata = data.team and EFTPMS.TeamsHands[data.team]
+
+    if teamdata and !mountedhands[data.team] then
+        return teamdata[3] or BasePMHands, data.handsbodygroups, data.handsskin
+    end
+
+    return data.handsmodel or BasePMHands, data.handsbodygroups, data.handsskin
+end
 
 -- SERVER
 
@@ -147,18 +177,18 @@ if SERVER then
 			net.WritePlayer( ply )
 			net.Broadcast()
 		end)
-			local data = torso and EFTPMS.GetPartData( "Torso", torso )
 		
 		if forcepawscvar:GetBool() then
 			timer.Simple( 0.1, function() if ply.SetupHands and isfunction( ply.SetupHands ) then ply:SetupHands() end end )
 			timer.Simple( 0.2, function()
-				if data then
+				local handmdl, handbgs, handskin = EFTPMS.GetHands(ply)
+				if debugmode then print( "EFTPMS: Setting hands to " .. handmdl) end
+				if handmdl then
 					local hands_ent = ply:GetHands()
 					if IsValid(hands_ent) then
-						hands_ent:SetModel(data.hands or BasePMHands)
-						
-						if data.handsbodygroups then hands_ent:SetBodyGroups(data.handsbodygroups) end
-						if data.handsskin then hands_ent:SetSkin(data.handsskin) end
+						hands_ent:SetModel(handmdl)
+						if handbgs then hands_ent:SetBodyGroups(handbgs) end
+						if handskin then hands_ent:SetSkin(handskin) end
 					end
 				end
 			end )
@@ -194,16 +224,17 @@ if SERVER then
 
 	local function forcehands(ply, ent)
 		if IsValid(ent) then
-			local data = EFTPMS.GetPartData("Torso", ply:GetNW2Int( "EFTPMS_Torso", 0))
-			ent:SetModel( data.hands or BasePMHands )
-
-			if data.handsbodygroups then hands_ent:SetBodyGroups(data.handsbodygroups) end
-			if data.handsskin then hands_ent:SetSkin(data.handsskin) end
+			local handmdl, handbgs, handskin = EFTPMS.GetHands(ply)
+			if handmdl then
+				ent:SetModel( handmdl )
+				if handbgs then hands_ent:SetBodyGroups(handbgs) end
+				if handskin then hands_ent:SetSkin(handskin) end
+			end
 		end
 	end
 
 	hook.Add( "PlayerSetHandsModel", "eftpms_hands", function( ply, ent )
-		if forcepawscvar:GetBool() and EFTPMS.IsActive(ply) then
+		if forcepawscvar:GetBool() and EFTPMS.IsActive(ply) and IsValid(ent) then
 			forcehands(ply, ent)
 			timer.Simple( 0.1, function() forcehands(ply, ent) end)
 		end
@@ -730,7 +761,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 				
 				local installed, unmounted = false, false
 
-				for _, addon in pairs(engine.GetAddons()) do
+				for _, addon in pairs(addonss) do
 					if tostring(wsid) == tostring(addon.wsid) then
 						if addon.mounted then 
 							installed = true
