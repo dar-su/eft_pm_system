@@ -1,7 +1,7 @@
 -- :3
 
 
-local debugmode = true
+local debugmode = false 
 
 local instaswitchcvar = CreateConVar( "eftpms_instant_switch", "1", SERVER and { FCVAR_ARCHIVE, FCVAR_REPLICATED } or { FCVAR_REPLICATED }, "If enabled, players can instantly switch without respawning." )
 local mixingcvar = CreateConVar( "eftpms_allow_mixing", "1", SERVER and { FCVAR_ARCHIVE, FCVAR_REPLICATED } or { FCVAR_REPLICATED }, "If enabled, players can mix parts between teams." )
@@ -39,7 +39,7 @@ EFTPMS.TeamsHands = { -- id = name, wsid, fallback, EFT_CHands.<GLOBAL VAR>
 
 EFTPMS.AddonList = { } -- parsed below
 
-local collectionid = 2892440572
+local collectionid = 3749208390
 local selfid = 2892440572 -- CHANGE THIS WHEN RELEASING
 
 
