@@ -29,12 +29,12 @@ EFTPMS.Teams = { -- id, printname, icon
 	{ "other", "Other", "eft_pm_system/icon_scav_16.png" },
 }
 
-EFTPMS.TeamsHands = { -- id = name, wsid, fallback
-	["bear"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_bear_base.mdl" },
-	["usec"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_usec_base.mdl" },
-	["other"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_bear_base.mdl" },
-	["arena"] = { " EFT - Arena C_Hands ", 3743442210, "models/eft/hands/hand_bear_base.mdl" },
-	["scav"] = { " EFT - Scav C_Hands ", 2838300952, "models/eft/hands/hand_shared_sweater.mdl" },
+EFTPMS.TeamsHands = { -- id = name, wsid, fallback, EFT_CHands.<GLOBAL VAR>
+	["bear"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_bear_base.mdl", "PMC_Pack" },
+	["usec"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_usec_base.mdl", "PMC_Pack" },
+	["other"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_bear_base.mdl", "PMC_Pack" },
+	["arena"] = { " EFT - Arena C_Hands ", 3743442210, "models/eft/hands/hand_bear_base.mdl", "Arena_Pack" },
+	["scav"] = { " EFT - Scav C_Hands ", 2838300952, "models/eft/hands/hand_shared_sweater.mdl", "Scav_Pack" },
 }
 
 EFTPMS.AddonList = { } -- parsed below
@@ -116,12 +116,16 @@ local mountedhands = {}
 for teamId, teamInfo in pairs(EFTPMS.TeamsHands) do
 	local wsid = teamInfo[2]
 	mountedhands[teamId] = false
-	
-	if wsid then
-		for _, addon in pairs(addonss) do
-			if tostring(wsid) == tostring(addon.wsid) and addon.mounted then
-				mountedhands[teamId] = true
-				break
+
+	if EFT_CHands and EFT_CHands[teamInfo[4]] then
+		mountedhands[teamId] = true
+	else
+		if wsid then
+			for _, addon in pairs(addonss) do
+				if tostring(wsid) == tostring(addon.wsid) and addon.mounted then
+					mountedhands[teamId] = true
+					break
+				end
 			end
 		end
 	end
