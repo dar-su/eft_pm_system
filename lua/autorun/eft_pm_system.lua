@@ -5,6 +5,7 @@ local debugmode = true
 
 local instaswitchcvar = CreateConVar( "eftpms_instant_switch", "1", SERVER and { FCVAR_ARCHIVE, FCVAR_REPLICATED } or { FCVAR_REPLICATED }, "If enabled, players can instantly switch without respawning." )
 local mixingcvar = CreateConVar( "eftpms_allow_mixing", "1", SERVER and { FCVAR_ARCHIVE, FCVAR_REPLICATED } or { FCVAR_REPLICATED }, "If enabled, players can mix parts between teams." )
+local forcepawscvar = CreateConVar( "eftpms_force_hands", "1", SERVER and { FCVAR_ARCHIVE, FCVAR_REPLICATED } or { FCVAR_REPLICATED }, "Force C_Hands, disable for use with Fesiug's PM Selector or something" )
 
 EFTPMS = EFTPMS or {}
 
@@ -27,6 +28,20 @@ EFTPMS.Teams = { -- id, printname, icon
 	{ "boss", "Bosses", "eft_pm_system/icon_scav_16.png" },
 	{ "other", "Other", "eft_pm_system/icon_scav_16.png" },
 }
+
+EFTPMS.TeamsHands = { -- id = name, wsid, fallback
+	["bear"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_bear_base.mdl" },
+	["usec"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_usec_base.mdl" },
+	["other"] = { " EFT - PMC C_Hands ", 2828829604, "models/eft/hands/hand_bear_base.mdl" },
+	["arena"] = { " EFT - Arena C_Hands ", 3743442210, "models/eft/hands/hand_bear_base.mdl" },
+	["scav"] = { " EFT - Scav C_Hands ", 2838300952, "models/eft/hands/hand_shared_sweater.mdl" },
+}
+
+EFTPMS.AddonList = { } -- parsed below
+
+local collectionid = 2892440572
+local selfid = 2892440572 -- CHANGE THIS WHEN RELEASING
+
 
 EFTPMS.SlotList = { "Head", "Torso", "Legs" } -- important
 local slotList = EFTPMS.SlotList
@@ -95,6 +110,46 @@ function EFTPMS.GetPartList( partType )
 	return EFTPMS["Available_" .. partType]
 end
 
+local addonss = engine.GetAddons()
+
+local mountedhands = {}
+for teamId, teamInfo in pairs(EFTPMS.TeamsHands) do
+	local wsid = teamInfo[2]
+	mountedhands[teamId] = false
+	
+	if wsid then
+		for _, addon in pairs(addonss) do
+			if tostring(wsid) == tostring(addon.wsid) and addon.mounted then
+				mountedhands[teamId] = true
+				break
+			end
+		end
+	end
+end
+
+function EFTPMS.GetHands( ply )
+    local data = EFTPMS.GetPartData("Torso", ply:GetNW2Int("EFTPMS_Torso", 0))
+    if !data then return end
+
+    local teamdata = data.team and EFTPMS.TeamsHands[data.team]
+
+    if teamdata and !mountedhands[data.team] then
+        return teamdata[3] or BasePMHands, data.handsbodygroups, data.handsskin
+    end
+
+    return data.handsmodel or BasePMHands, data.handsbodygroups, data.handsskin
+end
+
+function EFTPMS.GetForcedTeam( ply )
+	if !mixingcvar:GetBool() then
+		for _, p in ipairs( slotList ) do
+			local try = EFTPMS.GetPartData( p, ply:GetInfoNum( "eftpms_cl_" .. string.lower(p), "0" ) ).team
+			if try then return try end
+		end
+	end
+
+	return false
+end
 
 -- SERVER
 
@@ -111,13 +166,7 @@ if SERVER then
         
         if debugmode then print( "EFTPMS: Updating playermodel for: "..tostring( ply:GetName() ) ) end
         
-		local teamm = nil
-		if !mixingcvar:GetBool() then
-			for _, p in ipairs( slotList ) do
-				local try = EFTPMS.GetPartData( p, ply:GetInfoNum( "eftpms_cl_" .. string.lower(p), "0" ) ).team
-				if try then teamm = try break end
-			end
-		end
+		local teamm = EFTPMS.GetForcedTeam(ply)
 
 		for _, p in ipairs( slotList ) do
 			local item = EFTPMS.ValidatePart( p, ply:GetInfoNum( "eftpms_cl_" .. string.lower(p), "0" ), teamm )
@@ -139,20 +188,22 @@ if SERVER then
 			net.WritePlayer( ply )
 			net.Broadcast()
 		end)
-
-        timer.Simple( 0.1, function() if ply.SetupHands and isfunction( ply.SetupHands ) then ply:SetupHands() end end )
-        timer.Simple( 0.2, function()
-			local data = torso and EFTPMS.GetPartData( "Torso", torso )
-			if data then
-				local hands_ent = ply:GetHands()
-				if IsValid(hands_ent) then
-					hands_ent:SetModel(data.hands or BasePMHands)
-					
-					if data.handsbodygroups then hands_ent:SetBodyGroups(data.handsbodygroups) end
-					if data.handsskin then hands_ent:SetSkin(data.handsskin) end
+		
+		if forcepawscvar:GetBool() then
+			timer.Simple( 0.1, function() if ply.SetupHands and isfunction( ply.SetupHands ) then ply:SetupHands() end end )
+			timer.Simple( 0.2, function()
+				local handmdl, handbgs, handskin = EFTPMS.GetHands(ply)
+				if debugmode then print( "EFTPMS: Setting hands to " .. handmdl) end
+				if handmdl then
+					local hands_ent = ply:GetHands()
+					if IsValid(hands_ent) then
+						hands_ent:SetModel(handmdl)
+						if handbgs then hands_ent:SetBodyGroups(handbgs) end
+						if handskin then hands_ent:SetSkin(handskin) end
+					end
 				end
-			end
-        end )
+			end )
+		end
         
         hook.Run( "SetModel", ply, mdlpath )
     end
@@ -184,16 +235,17 @@ if SERVER then
 
 	local function forcehands(ply, ent)
 		if IsValid(ent) then
-			local data = EFTPMS.GetPartData("Torso", ply:GetNW2Int( "EFTPMS_Torso", 0))
-			ent:SetModel( data.hands or BasePMHands )
-
-			if data.handsbodygroups then hands_ent:SetBodyGroups(data.handsbodygroups) end
-			if data.handsskin then hands_ent:SetSkin(data.handsskin) end
+			local handmdl, handbgs, handskin = EFTPMS.GetHands(ply)
+			if handmdl then
+				ent:SetModel( handmdl )
+				if handbgs then hands_ent:SetBodyGroups(handbgs) end
+				if handskin then hands_ent:SetSkin(handskin) end
+			end
 		end
 	end
 
 	hook.Add( "PlayerSetHandsModel", "eftpms_hands", function( ply, ent )
-		if EFTPMS.IsActive(ply) then
+		if forcepawscvar:GetBool() and EFTPMS.IsActive(ply) and IsValid(ent) then
 			forcehands(ply, ent)
 			timer.Simple( 0.1, function() forcehands(ply, ent) end)
 		end
@@ -486,21 +538,60 @@ hook.Add("Think", "eftpms_validate", function()
 end)
 
 -- MENU
--- Some parts used from Enhanced PlayerModel Selector that was upgraded by LibertyForce
 
 -------------------------------------------------------------------------
 
+
+
+function EFTPMS.ParseSteamCollection( id, tbl, func )
+    http.Fetch("https://steamcommunity.com/sharedfiles/filedetails/?id=" .. id, function(body, _, _, code)
+        if code != 200 or !body or body == "" then return end
+
+        local pos = 1
+        while true do
+            local _, idEnd, itemID = body:find('id="sharedfile_(%d+)"', pos)
+            if !idEnd then break end
+            
+            local titleStart, _, name = body:find('class="workshopItemTitle"[^>]*>%s*([^<]-)%s*</div>', idEnd)
+
+            if titleStart and (titleStart - idEnd) < 1500 then
+                for k, v in pairs({["&amp;"]="&", ["&quot;"]='"', ["&#39;"]="'", ["&lt;"]="<", ["&gt;"]=">"}) do 
+                    name = string.Replace(name, k, v) 
+                end
+                
+				local installed = false
+				for _, addon in pairs(addonss) do
+					if tostring(itemID) == tostring(addon.wsid) and addon.mounted then
+						installed = true
+						break
+					end
+				end
+
+                if itemID != selfid then 
+					table.insert(tbl, { name = name, id = itemID, installed = installed })
+				end
+            end
+			
+            pos = idEnd
+        end
+
+		func()
+    end)
+end
+
 local menuPartsCSModels = {}
+local sizex, sizey = math.min(1080, ScrW()), math.min(800, ScrH())
+local bg = Material("eft_pm_system/apparel_item_background.png", "smooth")
 
 list.Set( "DesktopWindows", "EFTPMS_Widget", {
-	title		= "EFT PM System",
+	title		= "EFT Framework",
 	icon		= "eft_pm_system/ahper.png",
-	width		= 960,
-	height		= 700,
+	width		= sizex,
+	height		= sizey,
 	onewindow	= true,
 	init		= function( widgetIcon, window )
 
-		window:SetTitle( "EFT Player Model System" )
+		window:SetTitle( "EFT Playermodel Framework" )
 		window:SetSize( math.min( ScrW() - 16, window:GetWide() ), math.min( ScrH() - 16, window:GetTall() ) )
 		window:SetSizable( true )
 		window:SetMinWidth( window:GetWide() )
@@ -517,7 +608,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 		overlay.Paint = function( s, w, h ) draw.RoundedBox( 0, 0, 0, w, h, Color( 26, 26, 26, 253) ) end
 
 		local warnLbl = overlay:Add( "DLabel" )
-		warnLbl:SetText( "EFT Player Model System is currently disabled!" )
+		warnLbl:SetText( "EFT Playermodel Framework is currently disabled!" )
 		warnLbl:SetFont( "DermaLarge" )
 		warnLbl:SizeToContents()
 		warnLbl:SetPos( 80, 200 )
@@ -543,12 +634,22 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 		mdl:Dock( FILL )
 		mdl:SetFOV( 12 )
 		mdl:SetCamPos( vector_origin )
-		mdl:SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80, 255 ) )
-		mdl:SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255, 255 ) )
-		mdl:SetAmbientLight( Vector( -64, -64, -64 ) )
+		mdl:SetDirectionalLight( BOX_RIGHT, Color( 245, 160, 104, 248) )
+		mdl:SetDirectionalLight( BOX_LEFT, Color( 64, 64, 107, 251) )
+		mdl:SetDirectionalLight( BOX_BACK, Color( 56, 56, 56) )
+		mdl:SetDirectionalLight( BOX_FRONT, Color( 230, 230, 230) )
+		mdl:SetAmbientLight( Vector( -164, -164, -164 ) )
 		mdl:SetAnimated( true )
 		mdl.Angles = Angle( 2, 0, 0)
 		mdl:SetLookAt( Vector( -100, 0, -13 ) )
+
+		local oldmdlpaint = mdl.Paint
+		mdl.Paint = function(self, w, h)
+			surface.SetMaterial(bg)
+			surface.SetDrawColor(255, 255, 255, 240)
+			surface.DrawTexturedRect(0, 0, w, h)
+			oldmdlpaint(self, w, h)
+		end
 
 		function mdl:DragMousePress()
 			self.PressX, self.PressY = input.GetCursorPos()
@@ -598,7 +699,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 
 			local function AttachPart( partType, cvar )
 				local id = GetConVar( cvar ):GetInt()
-    			local data = EFTPMS.GetPartData( partType, id )
+    			local data = EFTPMS.GetPartData( partType, EFTPMS.ValidatePart( partType, LocalPlayer():GetInfoNum( "eftpms_cl_" .. string.lower(partType), "0" ), EFTPMS.GetForcedTeam(LocalPlayer()) ))
 
 				if data and data.model then
 					local p = ClientsideModel( data.model, RENDERGROUP_OPAQUE )
@@ -625,18 +726,29 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			for _, p in ipairs( slotList ) do
 				AttachPart( p, "eftpms_cl_" .. string.lower(p) )
 			end
+
+			do -- shadow
+				local ps = ClientsideModel("models/eft/pmcs/menu_shadow.mdl", RENDERGROUP_OPAQUE )
+				if IsValid( ps ) then
+					ps:SetParent( mdl.Entity )
+					ps:SetNoDraw( true )
+					ps:SetPos(mdl.Entity:GetPos() + Vector(0.6, 0, 1.1))
+					ps:SetAngles(mdl.Entity:GetAngles()+Angle(0, 96.6, -2))
+					table.insert( menuPartsCSModels, ps )
+				end
+			end
 		end
 
         mdl.ApplyButton = window:Add( "DButton" )
-        mdl.ApplyButton:SetSize( 120, 30 )
-        mdl.ApplyButton:SetPos( 280, 30 )
+        mdl.ApplyButton:SetSize( 120, 33 )
+        mdl.ApplyButton:SetPos( sizex*0.3, 35 )
         mdl.ApplyButton:SetText( "Apply playermodel" )
         mdl.ApplyButton:SetEnabled( LocalPlayer():IsAdmin() or instaswitchcvar:GetBool() )
         mdl.ApplyButton.DoClick = EFTPMS.SendPM
 
 		local rightPnl = container:Add( "DPanel" )
 		rightPnl:Dock( RIGHT )
-		rightPnl:SetWide( 550 )
+		rightPnl:SetWide( sizex * 0.58 )
 		rightPnl.Paint = function() end
 
 		local settings = rightPnl:Add( "DPanel" )
@@ -647,17 +759,25 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 
 		local mixing = settings:Add( "DCheckBoxLabel" )
 		mixing:Dock( LEFT )
-		mixing:SetText( "Allow mixing parts from different teams?        " )
+		mixing:DockMargin( 0, 0, 50, 0 )
+		mixing:SetText( "Allow mixing parts from different teams" )
 		mixing:SetConVar( "eftpms_allow_mixing" )
 		mixing:SizeToContents()
 		mixing:SetDark(true)
 
 		local instant = settings:Add( "DCheckBoxLabel" )
 		instant:Dock( LEFT )
-		instant:SetText( "Allow instant switch?" )
+		instant:SetText( "Allow instant switch" )
 		instant:SetConVar( "eftpms_instant_switch" )
 		instant:SizeToContents()
 		instant:SetDark(true)
+
+		local radio4 = settings:Add( "DCheckBoxLabel" )
+		radio4:Dock( RIGHT )
+		radio4:SetText( "Force C_Hands" )
+		radio4:SizeToContents()
+		radio4:SetDark(true)
+		radio4:SetConVar( "eftpms_force_hands" )
 
 		local settings2 = rightPnl:Add( "DPanel" )
 		settings2:Dock( BOTTOM )
@@ -679,7 +799,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			UpdatePreviewModel()
 		end
 		
-		local textt = { "Deform Upper (Armor)     ", "Deform Upper (Chest Rig)        ", "Deform Head" }
+		local textt = { "Deform Upper (Armor)     ", "Deform Upper (Chest Rig)       ", "Deform Head" }
 
 		for i = 1, 2 do
 			local radio = settings2:Add( "DCheckBoxLabel" )
@@ -687,6 +807,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			radio:SetText( textt[i] )
 			radio:SizeToContents()
 			radio:SetDark(true)
+			radio:DockMargin( 0, 0, 20, 0 )
 			radioButtons[i] = radio
 			
 			radio.OnChange = function(self, value)
@@ -697,14 +818,60 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 		UpdateRadioButtons()
 
 		local radio3 = settings2:Add( "DCheckBoxLabel" )
-		radio3:Dock( LEFT )
+		radio3:Dock( RIGHT )
 		radio3:SetText( textt[3] )
 		radio3:SizeToContents()
 		radio3:SetDark(true)
 		radio3:SetConVar( "eftpms_cl_head_fix" )
+		radio3.OnChange = UpdatePreviewModel
+
 		
-		radio3.OnChange = function(self, value)
-			UpdatePreviewModel()
+		local function AddFuckingHandsNotice(parent, teamId)
+			if EFTPMS.TeamsHands[teamId] then
+				local name, wsid = EFTPMS.TeamsHands[teamId][1], EFTPMS.TeamsHands[teamId][2]
+				
+				local installed, unmounted = false, false
+
+				for _, addon in pairs(addonss) do
+					if tostring(wsid) == tostring(addon.wsid) then
+						if addon.mounted then 
+							installed = true
+							break
+						else
+							unmounted = true
+						end
+					end
+				end
+
+				if !installed then
+					local settings3 = parent:Add( "DPanel" )
+					settings3:Dock( BOTTOM )
+					settings3:DockMargin( 0, 0, 0, 8 )
+					settings3:DockPadding( 8, 8, 8, 8 )
+					settings3:SetTall( 33 )
+
+					local notice = settings3:Add( "DLabel" )
+					notice:Dock( LEFT )
+					notice:SetText( "Notice: you don't have" )
+					notice:SizeToContents()
+					notice:SetDark(true)
+					local notice2 = settings3:Add( "DButton" )
+					notice2:Dock( LEFT )
+					notice2:SetText( name )
+					notice2:DockMargin( 5, 0, 5, 0 )
+					notice2:DockPadding( 5, 0, 5, 0 )
+					notice2:SizeToContents()
+					notice2:SetDark(true)
+					notice2.DoClick = function()
+						gui.OpenURL( "https://steamcommunity.com/sharedfiles/filedetails/?id=" .. wsid )
+					end
+					local notice3 = settings3:Add( "DLabel" )
+					notice3:Dock( LEFT )
+					notice3:SetText( unmounted and "enabled (already installed but not mounted)" or "installed" .. ". Fallback c_hands will be used." )
+					notice3:SizeToContents()
+					notice3:SetDark(true)
+				end
+			end
 		end
 
 		local tabsToRebuild = {}
@@ -743,7 +910,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			if !teamhasitems(teamId) then return end
 
 			local pnl = vgui.Create( "DPanel" )
-			pnl:DockPadding( 8, 8, 8, 8 )
+			pnl:DockPadding( 8, 8, 8, 0 )
 
 			local scroll = pnl:Add( "DScrollPanel" )
 			scroll:Dock( FILL )
@@ -767,9 +934,10 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 						for id, data in SortedPairs( EFTPMS.GetPartList( partType ) or {} ) do
 							if data.category == teamId then
 								local icon = pnlSelect:Add( "DImageButton" )
-								icon:SetSize( 75, 75 )
+								icon:SetSize( 96, 96 )
 								icon:SetTooltip( data.name or id )
-								icon:SetImage( data.icon or "spawnicons/models/Gibs/HGIBS.png" )
+								-- icon:SetImage( data.icon or "spawnicons/models/Gibs/HGIBS.png" )
+								icon:SetMaterial(Material(data.icon or "spawnicons/models/Gibs/HGIBS.png", "smooth"))
 								
 								icon.Paint = function( s, w, h )
 									if data.index == GetConVar(cvarName):GetInt() then
@@ -807,6 +975,8 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 				end
 			end
 
+			AddFuckingHandsNotice(pnl, teamId)
+
 			pnl.Rebuild()
 			table.insert( tabsToRebuild, pnl )
 			sheet:AddSheet( teamName, pnl, teamIcon )
@@ -815,6 +985,57 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 		for _, p in ipairs( EFTPMS.Teams ) do
 			BuildTeamTab( p[1], p[2], p[3] )
 		end
+
+
+
+		local pnl67 = vgui.Create( "DPanel" )
+		pnl67:DockPadding( 8, 8, 8, 0 )
+		local scroll67 = pnl67:Add( "DScrollPanel" )
+		scroll67:Dock( FILL )
+
+		local function addtextlol(parent, text, butt, yay)
+			local woof = parent:Add( butt and "DButton" or "DLabel")
+			woof:Dock( TOP )
+			woof:DockMargin(8, 4, 8, 4)
+			woof:SetText( text )
+			woof:SetDark( true )
+			if butt then 
+				woof:SetTall(24)
+				woof.DoClick = function(self) gui.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=" .. butt) end
+				if yay then
+					woof.OldPaint = woof.Paint
+					woof.Paint = function(self, w, h)
+						woof.OldPaint(self, w, h)
+						draw.RoundedBox( 0, 0, 0, w, h, Color( 102, 167, 60, 200) )
+					end
+				end
+			end
+		end
+
+		pnl67.Rebuild = function()
+			scroll67:Clear()
+			addtextlol(scroll67, "EFT Playermodel Framework by Darsu, made for use with Stan_Jacobs models  :-)")
+			addtextlol(scroll67, "▶  Available addons to use with this framework:")
+			-- PrintTable(EFTPMS.AddonList)
+			if table.IsEmpty(EFTPMS.AddonList) then
+				addtextlol(scroll67, "          Loading >w<")
+				addtextlol(scroll67, "If takes too long, collection parsing was unsuccessful.")
+				addtextlol(scroll67, "Whatever, open it manually", collectionid)
+			else
+				for _, addon in ipairs( EFTPMS.AddonList ) do
+					addtextlol(scroll67, addon.name, addon.id, addon.installed)
+				end
+			end
+		end
+
+		pnl67.Rebuild()
+
+		EFTPMS.ParseSteamCollection(collectionid, EFTPMS.AddonList, pnl67.Rebuild)
+
+		table.insert( tabsToRebuild, pnl67 )
+		sheet:AddSheet( "", pnl67, "materials/icon16/information.png", false, false, "hi" )
+
+
 
 		window.CheckActiveState = function()
 			local isActive = EFTPMS.IsActive( LocalPlayer() )
@@ -831,7 +1052,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 
 concommand.Add( "eftpms_open", function()
 	for id, icon in pairs( g_ContextMenu.DesktopWidgets:GetChildren() ) do
-		if ( not icon.WidgetClass or icon.WidgetClass ~= "EFTPMS_Widget" ) then continue end
+		if !icon.WidgetClass or icon.WidgetClass ~= "EFTPMS_Widget" then continue end
 
 		g_ContextMenu:SetMouseInputEnabled( true )
 		icon:DoClick()
