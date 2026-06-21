@@ -140,6 +140,17 @@ function EFTPMS.GetHands( ply )
     return data.handsmodel or BasePMHands, data.handsbodygroups, data.handsskin
 end
 
+function EFTPMS.GetForcedTeam( ply )
+	if !mixingcvar:GetBool() then
+		for _, p in ipairs( slotList ) do
+			local try = EFTPMS.GetPartData( p, ply:GetInfoNum( "eftpms_cl_" .. string.lower(p), "0" ) ).team
+			if try then return try end
+		end
+	end
+
+	return false
+end
+
 -- SERVER
 
 -------------------------------------------------------------------------
@@ -155,13 +166,7 @@ if SERVER then
         
         if debugmode then print( "EFTPMS: Updating playermodel for: "..tostring( ply:GetName() ) ) end
         
-		local teamm = nil
-		if !mixingcvar:GetBool() then
-			for _, p in ipairs( slotList ) do
-				local try = EFTPMS.GetPartData( p, ply:GetInfoNum( "eftpms_cl_" .. string.lower(p), "0" ) ).team
-				if try then teamm = try break end
-			end
-		end
+		local teamm = EFTPMS.GetForcedTeam(ply)
 
 		for _, p in ipairs( slotList ) do
 			local item = EFTPMS.ValidatePart( p, ply:GetInfoNum( "eftpms_cl_" .. string.lower(p), "0" ), teamm )
@@ -694,7 +699,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 
 			local function AttachPart( partType, cvar )
 				local id = GetConVar( cvar ):GetInt()
-    			local data = EFTPMS.GetPartData( partType, id )
+    			local data = EFTPMS.GetPartData( partType, EFTPMS.ValidatePart( partType, LocalPlayer():GetInfoNum( "eftpms_cl_" .. string.lower(partType), "0" ), EFTPMS.GetForcedTeam(LocalPlayer()) ))
 
 				if data and data.model then
 					local p = ClientsideModel( data.model, RENDERGROUP_OPAQUE )

@@ -131,69 +131,6 @@ EFTPMS.RegisterHead({
 
 
 
-EFTPMS.RegisterHead({
-	name = "Alpha USEC",
-	id = "head_usec_alpha",
-	icon = "eft_pm_system/heads/usec_head_0.png",
-	category = "other", 
-	model = "models/eft/pmc/head/usec_0.mdl",
-})
-
-
-
-
-EFTPMS.RegisterTorso({
-	name = "Cultist (Hood Down)",
-	id = "shared_top_cultist",
-	team = "other", 
-	model = "models/eft/pmc/top/Top_PMC_CULTIST.mdl",
-	icon = "eft_pm_system/top/Top_PMC_CULTIST.png",
-	hands = "models/eft/hands/hand_pmc_cultist.mdl",
-})
-EFTPMS.RegisterTorso({
-	name = "Cultist (Hood Up)",
-	id = "shared_top_cultist_hood",
-	team = "other", 
-	model = "models/eft/pmc/top/Top_PMC_CULTIST_hood.mdl",
-	icon = "eft_pm_system/top/Top_PMC_CULTIST_hood.png",
-	hands = "models/eft/hands/hand_pmc_cultist.mdl",
-})
-EFTPMS.RegisterTorso({
-	name = "Adik Tracksuit",
-	id = "shared_top_killa",
-	team = "other", 
-	model = "models/eft/pmc/top/Top_BOSS_Killa.mdl",
-	icon = "eft_pm_system/top/Top_BOSS_Killa.png",
-	hands = "models/eft/hands/hand_shared_tracksuit.mdl",
-})
-EFTPMS.RegisterTorso({
-	name = "Predator Upper",
-	id = "shared_top_knight",
-	team = "other", 
-	model = "models/eft/pmc/top/Top_Boss_Black_Knight.mdl",
-	icon = "eft_pm_system/top/Top_Boss_Black_Knight.png",
-	hands = "models/eft/hands/hand_boss_blackknight.mdl",
-})
-EFTPMS.RegisterTorso({
-	name = "BEAR Hawaii (TGS)",
-	id = "00bear_top_hawaii_tgs",
-	team = "other", 
-	model = "models/eft/pmc/top/Top_BEAR_Hawaii_2.mdl",
-	icon = "eft_pm_system/top/Top_BEAR_Hawaii_2.png",
-	hands = "models/eft/hands/hand_bear_hawaii_02.mdl",
-})
-EFTPMS.RegisterTorso({
-	name = "USEC Hawaii (TGS)",
-	id = "00usec_top_hawaii_tgs",
-	team = "other", 
-	model = "models/eft/pmc/top/Top_USEC_Hawaii_2.mdl",
-	icon = "eft_pm_system/top/Top_USEC_Hawaii_2.png",
-	hands = "models/eft/hands/hand_usec_hawaii_02.mdl",
-})
-
-
-
-
 EFTPMS.RegisterTorso({
 	name = "Turtleneck",
 	id = "01_bear_top_turtleneck_old",
@@ -1160,3 +1097,76 @@ EFTPMS.RegisterLegs({
 	team = "usec", 
 	model = "models/eft/pmc/pants/Pants_usec_UrbanResponder.mdl",
 })
+
+
+
+
+
+EFTPMS.RegisterHead({
+	name = "Alpha USEC",
+	id = "head_usec_alpha",
+	icon = "eft_pm_system/heads/usec_head_0.png",
+	team = "usec",
+	category = "other", 
+	model = "models/eft/pmc/head/usec_0.mdl",
+})
+
+
+
+
+EFTPMS.RegisterTorso({
+	name = "Cultist (Hood Down)",
+	id = "zshared_top_cultist",
+	-- team = "other", 
+	category = "other", 
+	model = "models/eft/pmc/top/Top_PMC_CULTIST.mdl",
+	icon = "eft_pm_system/top/Top_PMC_CULTIST.png",
+	hands = "models/eft/hands/hand_pmc_cultist.mdl",
+})
+EFTPMS.RegisterTorso({
+	name = "Cultist (Hood Up)",
+	id = "zshared_top_cultist_hood",
+	-- team = "other", 
+	category = "other", 
+	model = "models/eft/pmc/top/Top_PMC_CULTIST_hood.mdl",
+	icon = "eft_pm_system/top/Top_PMC_CULTIST_hood.png",
+	hands = "models/eft/hands/hand_pmc_cultist.mdl",
+})
+EFTPMS.RegisterTorso({
+	name = "Adik Tracksuit",
+	id = "zshared_top_killa",
+	-- team = "other", 
+	category = "other", 
+	model = "models/eft/pmc/top/Top_BOSS_Killa.mdl",
+	icon = "eft_pm_system/top/Top_BOSS_Killa.png",
+	hands = "models/eft/hands/hand_shared_tracksuit.mdl",
+})
+EFTPMS.RegisterTorso({
+	name = "Predator Upper",
+	id = "zshared_top_knight",
+	team = "usec", 
+	category = "other", 
+	model = "models/eft/pmc/top/Top_Boss_Black_Knight.mdl",
+	icon = "eft_pm_system/top/Top_Boss_Black_Knight.png",
+	hands = "models/eft/hands/hand_boss_blackknight.mdl",
+})
+EFTPMS.RegisterTorso({
+	name = "BEAR Hawaii (TGS)",
+	id = "zbear_top_hawaii_tgs",
+	team = "bear", 
+	category = "other", 
+	model = "models/eft/pmc/top/Top_BEAR_Hawaii_2.mdl",
+	icon = "eft_pm_system/top/Top_BEAR_Hawaii_2.png",
+	hands = "models/eft/hands/hand_bear_hawaii_02.mdl",
+})
+EFTPMS.RegisterTorso({
+	name = "USEC Hawaii (TGS)",
+	id = "zusec_top_hawaii_tgs",
+	team = "usec", 
+	category = "other", 
+	model = "models/eft/pmc/top/Top_USEC_Hawaii_2.mdl",
+	icon = "eft_pm_system/top/Top_USEC_Hawaii_2.png",
+	hands = "models/eft/hands/hand_usec_hawaii_02.mdl",
+})
+
+
