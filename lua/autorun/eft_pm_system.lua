@@ -272,6 +272,7 @@ if SERVER then
 	
 	hook.Add( "PlayerSpawn", "eftpms_playermodel_force_hook1", function( ply )
 		EFTPMS.UpdatePM_SV( ply )
+		timer.Simple(0.1, function() EFTPMS.UpdatePM_SV( ply ) end)
 	end )
 
 	local function sendragdollingrequest(ply, rag, returnlater)
