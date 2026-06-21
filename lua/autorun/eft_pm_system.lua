@@ -37,6 +37,12 @@ EFTPMS.TeamsHands = { -- id = name, wsid, fallback
 	["scav"] = { " EFT - Scav C_Hands ", 2838300952, "models/eft/hands/hand_shared_sweater.mdl" },
 }
 
+EFTPMS.AddonList = { } -- parsed below
+
+local collectionid = 2892440572
+local selfid = 2892440572 -- CHANGE THIS WHEN RELEASING
+
+
 EFTPMS.SlotList = { "Head", "Torso", "Legs" } -- important
 local slotList = EFTPMS.SlotList
 
@@ -527,17 +533,57 @@ hook.Add("Think", "eftpms_validate", function()
 end)
 
 -- MENU
--- Some parts used from Enhanced PlayerModel Selector that was upgraded by LibertyForce
 
 -------------------------------------------------------------------------
 
+
+
+function EFTPMS.ParseSteamCollection( id, tbl, func )
+    http.Fetch("https://steamcommunity.com/sharedfiles/filedetails/?id=" .. id, function(body, _, _, code)
+        if code != 200 or !body or body == "" then return end
+
+        local pos = 1
+        while true do
+            local _, idEnd, itemID = body:find('id="sharedfile_(%d+)"', pos)
+            if !idEnd then break end
+            
+            local titleStart, _, name = body:find('class="workshopItemTitle"[^>]*>%s*([^<]-)%s*</div>', idEnd)
+
+            if titleStart and (titleStart - idEnd) < 1500 then
+                for k, v in pairs({["&amp;"]="&", ["&quot;"]='"', ["&#39;"]="'", ["&lt;"]="<", ["&gt;"]=">"}) do 
+                    name = string.Replace(name, k, v) 
+                end
+                
+				local installed = false
+				for _, addon in pairs(addonss) do
+					if tostring(itemID) == tostring(addon.wsid) and addon.mounted then
+						installed = true
+						break
+					end
+				end
+
+                if itemID != selfid then 
+					table.insert(tbl, { name = name, id = itemID, installed = installed })
+				end
+            end
+			
+            pos = idEnd
+        end
+
+		func()
+    end)
+end
+
+
+
 local menuPartsCSModels = {}
+local sizex, sizey = math.min(1080, ScrW()), math.min(800, ScrH())
 
 list.Set( "DesktopWindows", "EFTPMS_Widget", {
 	title		= "EFT PM Framework",
 	icon		= "eft_pm_system/ahper.png",
-	width		= 960,
-	height		= 700,
+	width		= sizex,
+	height		= sizey,
 	onewindow	= true,
 	init		= function( widgetIcon, window )
 
@@ -670,14 +716,14 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 
         mdl.ApplyButton = window:Add( "DButton" )
         mdl.ApplyButton:SetSize( 120, 30 )
-        mdl.ApplyButton:SetPos( 280, 30 )
+        mdl.ApplyButton:SetPos( sizex*0.3, 30 )
         mdl.ApplyButton:SetText( "Apply playermodel" )
         mdl.ApplyButton:SetEnabled( LocalPlayer():IsAdmin() or instaswitchcvar:GetBool() )
         mdl.ApplyButton.DoClick = EFTPMS.SendPM
 
 		local rightPnl = container:Add( "DPanel" )
 		rightPnl:Dock( RIGHT )
-		rightPnl:SetWide( 550 )
+		rightPnl:SetWide( sizex * 0.58 )
 		rightPnl.Paint = function() end
 
 		local settings = rightPnl:Add( "DPanel" )
@@ -863,9 +909,10 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 						for id, data in SortedPairs( EFTPMS.GetPartList( partType ) or {} ) do
 							if data.category == teamId then
 								local icon = pnlSelect:Add( "DImageButton" )
-								icon:SetSize( 75, 75 )
+								icon:SetSize( 96, 96 )
 								icon:SetTooltip( data.name or id )
-								icon:SetImage( data.icon or "spawnicons/models/Gibs/HGIBS.png" )
+								-- icon:SetImage( data.icon or "spawnicons/models/Gibs/HGIBS.png" )
+								icon:SetMaterial(Material(data.icon or "spawnicons/models/Gibs/HGIBS.png", "smooth"))
 								
 								icon.Paint = function( s, w, h )
 									if data.index == GetConVar(cvarName):GetInt() then
@@ -914,6 +961,57 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			BuildTeamTab( p[1], p[2], p[3] )
 		end
 
+
+
+		local pnl67 = vgui.Create( "DPanel" )
+		pnl67:DockPadding( 8, 8, 8, 0 )
+		local scroll67 = pnl67:Add( "DScrollPanel" )
+		scroll67:Dock( FILL )
+
+		local function addtextlol(parent, text, butt, yay)
+			local woof = parent:Add( butt and "DButton" or "DLabel")
+			woof:Dock( TOP )
+			woof:DockMargin(8, 4, 8, 4)
+			woof:SetText( text )
+			woof:SetDark( true )
+			if butt then 
+				woof:SetTall(24)
+				woof.DoClick = function(self) gui.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=" .. butt) end
+				if yay then
+					woof.OldPaint = woof.Paint
+					woof.Paint = function(self, w, h)
+						woof.OldPaint(self, w, h)
+						draw.RoundedBox( 0, 0, 0, w, h, Color( 102, 167, 60, 200) )
+					end
+				end
+			end
+		end
+
+		pnl67.Rebuild = function()
+			scroll67:Clear()
+			addtextlol(scroll67, "EFT Playermodel Framework by Darsu, made for use with Stan_Jacobs models  :-)")
+			addtextlol(scroll67, "▶  Available addons to use with this framework:")
+			-- PrintTable(EFTPMS.AddonList)
+			if table.IsEmpty(EFTPMS.AddonList) then
+				addtextlol(scroll67, "          Loading >w<")
+				addtextlol(scroll67, "If takes too long, collection parsing was unsuccessful.")
+				addtextlol(scroll67, "Whatever, open it manually", collectionid)
+			else
+				for _, addon in ipairs( EFTPMS.AddonList ) do
+					addtextlol(scroll67, addon.name, addon.id, addon.installed)
+				end
+			end
+		end
+
+		pnl67.Rebuild()
+
+		EFTPMS.ParseSteamCollection(collectionid, EFTPMS.AddonList, pnl67.Rebuild)
+
+		table.insert( tabsToRebuild, pnl67 )
+		sheet:AddSheet( "", pnl67, "materials/icon16/information.png", false, false, "hi" )
+
+
+
 		window.CheckActiveState = function()
 			local isActive = EFTPMS.IsActive( LocalPlayer() )
 			container:SetVisible( isActive )
@@ -929,7 +1027,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 
 concommand.Add( "eftpms_open", function()
 	for id, icon in pairs( g_ContextMenu.DesktopWidgets:GetChildren() ) do
-		if ( not icon.WidgetClass or icon.WidgetClass ~= "EFTPMS_Widget" ) then continue end
+		if !icon.WidgetClass or icon.WidgetClass ~= "EFTPMS_Widget" then continue end
 
 		g_ContextMenu:SetMouseInputEnabled( true )
 		icon:DoClick()
