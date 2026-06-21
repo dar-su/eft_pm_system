@@ -534,14 +534,14 @@ end)
 local menuPartsCSModels = {}
 
 list.Set( "DesktopWindows", "EFTPMS_Widget", {
-	title		= "EFT PM System",
+	title		= "EFT PM Framework",
 	icon		= "eft_pm_system/ahper.png",
 	width		= 960,
 	height		= 700,
 	onewindow	= true,
 	init		= function( widgetIcon, window )
 
-		window:SetTitle( "EFT Player Model System" )
+		window:SetTitle( "EFT Playermodel Framework" )
 		window:SetSize( math.min( ScrW() - 16, window:GetWide() ), math.min( ScrH() - 16, window:GetTall() ) )
 		window:SetSizable( true )
 		window:SetMinWidth( window:GetWide() )
@@ -558,7 +558,7 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 		overlay.Paint = function( s, w, h ) draw.RoundedBox( 0, 0, 0, w, h, Color( 26, 26, 26, 253) ) end
 
 		local warnLbl = overlay:Add( "DLabel" )
-		warnLbl:SetText( "EFT Player Model System is currently disabled!" )
+		warnLbl:SetText( "EFT Playermodel Framework is currently disabled!" )
 		warnLbl:SetFont( "DermaLarge" )
 		warnLbl:SizeToContents()
 		warnLbl:SetPos( 80, 200 )
