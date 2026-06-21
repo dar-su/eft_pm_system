@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	$basetexture "eft_pm_system/shadow2"
+	$translucent 1
+}

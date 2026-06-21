@@ -574,13 +574,12 @@ function EFTPMS.ParseSteamCollection( id, tbl, func )
     end)
 end
 
-
-
 local menuPartsCSModels = {}
 local sizex, sizey = math.min(1080, ScrW()), math.min(800, ScrH())
+local bg = Material("eft_pm_system/apparel_item_background.png", "smooth")
 
 list.Set( "DesktopWindows", "EFTPMS_Widget", {
-	title		= "EFT PM Framework",
+	title		= "EFT Framework",
 	icon		= "eft_pm_system/ahper.png",
 	width		= sizex,
 	height		= sizey,
@@ -630,12 +629,22 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 		mdl:Dock( FILL )
 		mdl:SetFOV( 12 )
 		mdl:SetCamPos( vector_origin )
-		mdl:SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80, 255 ) )
-		mdl:SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255, 255 ) )
-		mdl:SetAmbientLight( Vector( -64, -64, -64 ) )
+		mdl:SetDirectionalLight( BOX_RIGHT, Color( 245, 160, 104, 248) )
+		mdl:SetDirectionalLight( BOX_LEFT, Color( 64, 64, 107, 251) )
+		mdl:SetDirectionalLight( BOX_BACK, Color( 56, 56, 56) )
+		mdl:SetDirectionalLight( BOX_FRONT, Color( 230, 230, 230) )
+		mdl:SetAmbientLight( Vector( -164, -164, -164 ) )
 		mdl:SetAnimated( true )
 		mdl.Angles = Angle( 2, 0, 0)
 		mdl:SetLookAt( Vector( -100, 0, -13 ) )
+
+		local oldmdlpaint = mdl.Paint
+		mdl.Paint = function(self, w, h)
+			surface.SetMaterial(bg)
+			surface.SetDrawColor(255, 255, 255, 240)
+			surface.DrawTexturedRect(0, 0, w, h)
+			oldmdlpaint(self, w, h)
+		end
 
 		function mdl:DragMousePress()
 			self.PressX, self.PressY = input.GetCursorPos()
@@ -712,11 +721,22 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			for _, p in ipairs( slotList ) do
 				AttachPart( p, "eftpms_cl_" .. string.lower(p) )
 			end
+
+			do -- shadow
+				local ps = ClientsideModel("models/eft/pmcs/menu_shadow.mdl", RENDERGROUP_OPAQUE )
+				if IsValid( ps ) then
+					ps:SetParent( mdl.Entity )
+					ps:SetNoDraw( true )
+					ps:SetPos(mdl.Entity:GetPos() + Vector(0.6, 0, 1.1))
+					ps:SetAngles(mdl.Entity:GetAngles()+Angle(0, 96.6, -2))
+					table.insert( menuPartsCSModels, ps )
+				end
+			end
 		end
 
         mdl.ApplyButton = window:Add( "DButton" )
-        mdl.ApplyButton:SetSize( 120, 30 )
-        mdl.ApplyButton:SetPos( sizex*0.3, 30 )
+        mdl.ApplyButton:SetSize( 120, 33 )
+        mdl.ApplyButton:SetPos( sizex*0.3, 35 )
         mdl.ApplyButton:SetText( "Apply playermodel" )
         mdl.ApplyButton:SetEnabled( LocalPlayer():IsAdmin() or instaswitchcvar:GetBool() )
         mdl.ApplyButton.DoClick = EFTPMS.SendPM
