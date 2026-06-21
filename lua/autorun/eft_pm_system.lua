@@ -40,7 +40,7 @@ EFTPMS.TeamsHands = { -- id = name, wsid, fallback, EFT_CHands.<GLOBAL VAR>
 EFTPMS.AddonList = { } -- parsed below
 
 local collectionid = 3749208390
-local selfid = 2892440572 -- CHANGE THIS WHEN RELEASING
+local selfid = 3749254767
 
 
 EFTPMS.SlotList = { "Head", "Torso", "Legs" } -- important
