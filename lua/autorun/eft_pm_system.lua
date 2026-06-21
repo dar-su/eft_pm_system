@@ -1021,6 +1021,8 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 				addtextlol(scroll67, "          Loading >w<")
 				addtextlol(scroll67, "If takes too long, collection parsing was unsuccessful.")
 				addtextlol(scroll67, "Whatever, open it manually", collectionid)
+
+				EFTPMS.ParseSteamCollection(collectionid, EFTPMS.AddonList, pnl67.Rebuild)
 			else
 				for _, addon in ipairs( EFTPMS.AddonList ) do
 					addtextlol(scroll67, addon.name, addon.id, addon.installed)
@@ -1030,7 +1032,6 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 
 		pnl67.Rebuild()
 
-		EFTPMS.ParseSteamCollection(collectionid, EFTPMS.AddonList, pnl67.Rebuild)
 
 		table.insert( tabsToRebuild, pnl67 )
 		sheet:AddSheet( "", pnl67, "materials/icon16/information.png", false, false, "hi" )
