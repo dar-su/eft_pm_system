@@ -530,7 +530,7 @@ hook.Add("Think", "eftpms_validate", function()
 		local ply = LocalPlayer()
 
 		if CLegs or g_Legs then -- CLegs and GLegs support
-			local legEnt = CLegs and ply.LegEnt or g_Legs.LegEnt
+			local legEnt = CLegs and ply.LegEnt or (g_Legs and g_Legs.LegEnt)
 			if legEnt and IsValid(legEnt) then
 				legEnt.RenderOverride = function(self)
 					self:DrawModel()
@@ -572,7 +572,7 @@ function EFTPMS.ParseSteamCollection( id, tbl, func )
 					end
 				end
 
-                if itemID != selfid then 
+                if itemID != tostring(selfid) then 
 					table.insert(tbl, { name = name, id = itemID, installed = installed })
 				end
             end
