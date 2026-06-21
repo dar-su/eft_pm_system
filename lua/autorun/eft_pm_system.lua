@@ -137,7 +137,7 @@ function EFTPMS.GetHands( ply )
         return teamdata[3] or BasePMHands, data.handsbodygroups, data.handsskin
     end
 
-    return data.handsmodel or BasePMHands, data.handsbodygroups, data.handsskin
+    return data.hands or BasePMHands, data.handsbodygroups, data.handsskin
 end
 
 function EFTPMS.GetForcedTeam( ply )
