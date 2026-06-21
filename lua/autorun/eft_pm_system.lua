@@ -22,6 +22,7 @@ EFTPMS.BasePMHands = BasePMHands
 EFTPMS.Teams = { -- id, printname, icon
 	{ "bear", "BEAR", "eft_pm_system/icon_bear_16.png" },
 	{ "usec", "USEC", "eft_pm_system/icon_usec_16.png" },
+	{ "arena", "Arena", "eft_pm_system/icon_arena_16.png" },
 	{ "scav", "Scav", "eft_pm_system/icon_scav_16.png" },
 	{ "boss", "Bosses", "eft_pm_system/icon_scav_16.png" },
 	{ "other", "Other", "eft_pm_system/icon_scav_16.png" },
