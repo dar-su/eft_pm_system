@@ -5,6 +5,7 @@ local debugmode = true
 
 local instaswitchcvar = CreateConVar( "eftpms_instant_switch", "1", SERVER and { FCVAR_ARCHIVE, FCVAR_REPLICATED } or { FCVAR_REPLICATED }, "If enabled, players can instantly switch without respawning." )
 local mixingcvar = CreateConVar( "eftpms_allow_mixing", "1", SERVER and { FCVAR_ARCHIVE, FCVAR_REPLICATED } or { FCVAR_REPLICATED }, "If enabled, players can mix parts between teams." )
+local forcepawscvar = CreateConVar( "eftpms_force_hands", "1", SERVER and { FCVAR_ARCHIVE, FCVAR_REPLICATED } or { FCVAR_REPLICATED }, "Force C_Hands, disable for use with Fesiug's PM Selector or something" )
 
 EFTPMS = EFTPMS or {}
 
@@ -139,17 +140,19 @@ if SERVER then
 			net.WritePlayer( ply )
 			net.Broadcast()
 		end)
-
-        timer.Simple( 0.1, function() if ply.SetupHands and isfunction( ply.SetupHands ) then ply:SetupHands() end end )
-        timer.Simple( 0.2, function()
 			local data = torso and EFTPMS.GetPartData( "Torso", torso )
-			if data then
-				local hands_ent = ply:GetHands()
-				if IsValid(hands_ent) then
-					hands_ent:SetModel(data.hands or BasePMHands)
-					
-					if data.handsbodygroups then hands_ent:SetBodyGroups(data.handsbodygroups) end
-					if data.handsskin then hands_ent:SetSkin(data.handsskin) end
+		
+		if forcepawscvar:GetBool() then
+			timer.Simple( 0.1, function() if ply.SetupHands and isfunction( ply.SetupHands ) then ply:SetupHands() end end )
+			timer.Simple( 0.2, function()
+				if data then
+					local hands_ent = ply:GetHands()
+					if IsValid(hands_ent) then
+						hands_ent:SetModel(data.hands or BasePMHands)
+						
+						if data.handsbodygroups then hands_ent:SetBodyGroups(data.handsbodygroups) end
+						if data.handsskin then hands_ent:SetSkin(data.handsskin) end
+					end
 				end
 			end
         end )
@@ -193,7 +196,7 @@ if SERVER then
 	end
 
 	hook.Add( "PlayerSetHandsModel", "eftpms_hands", function( ply, ent )
-		if EFTPMS.IsActive(ply) then
+		if forcepawscvar:GetBool() and EFTPMS.IsActive(ply) then
 			forcehands(ply, ent)
 			timer.Simple( 0.1, function() forcehands(ply, ent) end)
 		end
@@ -658,6 +661,13 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 		instant:SetConVar( "eftpms_instant_switch" )
 		instant:SizeToContents()
 		instant:SetDark(true)
+
+		local radio4 = settings:Add( "DCheckBoxLabel" )
+		radio4:Dock( RIGHT )
+		radio4:SetText( "Force C_Hands" )
+		radio4:SizeToContents()
+		radio4:SetDark(true)
+		radio4:SetConVar( "eftpms_force_hands" )
 
 		local settings2 = rightPnl:Add( "DPanel" )
 		settings2:Dock( BOTTOM )
