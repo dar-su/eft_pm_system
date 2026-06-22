@@ -503,14 +503,6 @@ EFTPMS.RegisterTorso({
 	hands = "models/eft/hands/hand_usec_clawgear_olive.mdl",
 })
 EFTPMS.RegisterTorso({
-	name = "Legionnaire Olive",
-	id = "13_usec_top_legionnaire_olive",
-	team = "usec", 
-	model = "models/eft/pmc/top/Tshirt_usec_Clawgear_olive.mdl",
-	icon = "eft_pm_system/top/Tshirt_usec_Clawgear_olive.png",
-	hands = "models/eft/hands/hand_usec_clawgear_olive.mdl",
-})
-EFTPMS.RegisterTorso({
 	name = "Veteran",
 	id = "14_usec_top_veteran",
 	team = "usec", 
