@@ -504,11 +504,19 @@ EFTPMS.RegisterTorso({
 })
 EFTPMS.RegisterTorso({
 	name = "Veteran",
-	id = "14_usec_top_veteran",
+	id = "13_usec_top_veteran",
 	team = "usec", 
 	model = "models/eft/pmc/top/Top_USEC_Red_Preppers.mdl",
 	icon = "eft_pm_system/top/Top_USEC_Red_Preppers.png",
 	hands = "models/eft/hands/hand_usec_preppers_eod.mdl",
+})
+EFTPMS.RegisterTorso({
+	name = "Winter",
+	id = "14_usec_top_winter",
+	team = "usec", 
+	model = "models/eft/pmc/top/Top_Usec_WinterSet.mdl",
+	icon = "eft_pm_system/top/Top_Usec_WinterSet.png",
+	hands = "models/eft/hands/hand_usec_winterset1.mdl",
 })
 EFTPMS.RegisterTorso({
 	name = "PCU",
