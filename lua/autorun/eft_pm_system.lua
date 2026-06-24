@@ -138,7 +138,7 @@ function EFTPMS.GetHands( ply )
     local teamdata = data.team and EFTPMS.TeamsHands[data.team]
 
     if teamdata and !mountedhands[data.team] then
-        return teamdata[3] or BasePMHands, data.handsbodygroups, data.handsskin
+        return data.fallbackhands or teamdata[3] or BasePMHands, data.handsbodygroups, data.handsskin
     end
 
     return data.hands or BasePMHands, data.handsbodygroups, data.handsskin
