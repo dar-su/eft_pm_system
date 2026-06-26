@@ -43,7 +43,7 @@ local collectionid = 3749208390
 local selfid = 3749254767
 
 
-EFTPMS.SlotList = { "Head", "Torso", "Legs" } -- important
+EFTPMS.SlotList = { "Head", "Torso", "Legs", "Vest" } -- important
 local slotList = EFTPMS.SlotList
 
 for _, p in ipairs( slotList ) do
@@ -703,8 +703,14 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 			menuPartsCSModels = {}
 
 			local function AttachPart( partType, cvar )
-				local id = GetConVar( cvar ):GetInt()
-    			local data = EFTPMS.GetPartData( partType, EFTPMS.ValidatePart( partType, LocalPlayer():GetInfoNum( "eftpms_cl_" .. string.lower(partType), "0" ), EFTPMS.GetForcedTeam(LocalPlayer()) ))
+				local id = EFTPMS.ValidatePart( partType, LocalPlayer():GetInfoNum( "eftpms_cl_" .. string.lower(partType), "0" ))
+				
+				if !id then 
+					RunConsoleCommand( "eftpms_cl_" .. string.lower( partType ), 1 )
+					id = 1
+				end
+
+    			local data = EFTPMS.GetPartData( partType, id, EFTPMS.GetForcedTeam(LocalPlayer()))
 
 				if data and data.model then
 					local p = ClientsideModel( data.model, RENDERGROUP_OPAQUE )
