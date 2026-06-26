@@ -44,6 +44,11 @@ local selfid = 3749254767
 
 
 EFTPMS.SlotList = { "Head", "Torso", "Legs", "Vest" } -- important
+
+EFTPMS.RemovableSlots = {
+	["Vest"] = true
+}
+
 local slotList = EFTPMS.SlotList
 
 for _, p in ipairs( slotList ) do
@@ -85,6 +90,10 @@ function EFTPMS.GetPartData( partType, partID )
 end
 
 function EFTPMS.ValidatePart( partType, partID, teamm )
+	if partID == 0 then
+		return EFTPMS.IsSlotRemovable( partType ) and 0 or false
+	end
+
 	local data = EFTPMS.GetPartData( partType, partID )
 	
 	if teamm and data and data.team and data.team != teamm then
@@ -108,6 +117,10 @@ end
 
 function EFTPMS.GetPartList( partType )
 	return EFTPMS["Available_" .. partType]
+end
+
+function EFTPMS.IsSlotRemovable( partType )
+	return EFTPMS.RemovableSlots[partType] or false
 end
 
 local addonss = engine.GetAddons()
@@ -177,7 +190,10 @@ if SERVER then
 
 			if debugmode then print( "EFTPMS: Set " .. p .. " to: ", item, EFTPMS.GetPartData( p, item ).name or "Invalid" ) end
 
-			item = item or 1
+			if item == false or (item == 0 and !EFTPMS.IsSlotRemovable( p )) then
+				item = 1
+			end
+
 			ply:SetNW2Int( "EFTPMS_" .. p, item)
 			
 		end
@@ -941,6 +957,22 @@ list.Set( "DesktopWindows", "EFTPMS_Widget", {
 						cat:SetContents( pnlSelect )
 
 						local cvarName = "eftpms_cl_" .. string.lower( partType )
+
+						if EFTPMS.IsSlotRemovable( partType ) then
+							local noneIcon = pnlSelect:Add( "DImageButton" )
+							noneIcon:SetSize( 96, 96 )
+							noneIcon:SetTooltip( "No " .. partType )
+							noneIcon:SetMaterial( Material( "eft_pm_system/no.png", "smooth" ) )
+							noneIcon.Paint = function( s, w, h )
+								if GetConVar(cvarName):GetInt() == 0 then
+									draw.RoundedBox( 10, 5, 5, w-10, h-10, Color( 196, 135, 135, 178) )
+								end
+							end
+							noneIcon.DoClick = function()
+								RunConsoleCommand( cvarName, "0" )
+								timer.Simple( 0.1, function() UpdatePreviewModel() end )
+							end
+						end
 
 						for id, data in SortedPairs( EFTPMS.GetPartList( partType ) or {} ) do
 							if data.category == teamId then
