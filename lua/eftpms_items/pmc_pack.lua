@@ -1144,7 +1144,7 @@ EFTPMS.RegisterTorso({
 EFTPMS.RegisterTorso({
 	name = "PMC Predator Upper",
 	id = "01_shared_top_knight",
-	team = "usec", 
+	--team = "usec", 
 	category = "other", 
 	model = "models/eft/pmc/top/Top_Boss_Black_Knight.mdl",
 	icon = "eft_pm_system/top/Top_Boss_Black_Knight.png",
