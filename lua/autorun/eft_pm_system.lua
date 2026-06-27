@@ -20,13 +20,6 @@ EFTPMS.BasePMName = BasePMName -- not used really
 EFTPMS.BasePMModel = BasePMModel
 EFTPMS.BasePMHands = BasePMHands
 
-local owo = math.random(1,5)
-local bdicon = "eft_pm_system/icon_blackdiv_16.png"
-if owo == 1 then
-	bdicon = "eft_pm_system/icon_bd_16.png"
-end
-
-
 EFTPMS.Teams = { -- id, printname, icon
 	{ "bear", "BEAR", "eft_pm_system/icon_bear_16.png" },
 	{ "usec", "USEC", "eft_pm_system/icon_usec_16.png" },
@@ -34,7 +27,7 @@ EFTPMS.Teams = { -- id, printname, icon
 	{ "other", "Misc", "eft_pm_system/icon_other_16.png" },
 	{ "scav", "Scav", "eft_pm_system/icon_scav_16.png" },
 	{ "boss", "Bosses", "eft_pm_system/icon_boss_16.png" },
-	{ "bd", "Black Division", bdicon },
+	{ "bd", "Black Division", math.random(1,5) == 1 and "eft_pm_system/icon_bd_16.png" or "eft_pm_system/icon_blackdiv_16.png" },
 	{ "ruaf", "RUAF", "eft_pm_system/icon_ruaf_16.png" },
 	{ "cult", "Cultist", "eft_pm_system/icon_cultist_16.png" },
 }
