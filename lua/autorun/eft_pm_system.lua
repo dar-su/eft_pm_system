@@ -367,7 +367,7 @@ concommand.Add( "eftpms_apply", EFTPMS.SendPM )
 
 
 for _, p in ipairs( slotList ) do
-	CreateClientConVar( "eftpms_cl_" .. string.lower(p), "1", true, true )
+	CreateClientConVar( "eftpms_cl_" .. string.lower(p), EFTPMS.RemovableSlots[p] and "0" or "1", true, true )
 end
 
 local torsofixcvar = CreateClientConVar( "eftpms_cl_torso_fix", "0", true, true )
