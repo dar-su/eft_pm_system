@@ -20,13 +20,23 @@ EFTPMS.BasePMName = BasePMName -- not used really
 EFTPMS.BasePMModel = BasePMModel
 EFTPMS.BasePMHands = BasePMHands
 
+local owo = math.random(1,5)
+local bdicon = "eft_pm_system/icon_blackdiv_16.png"
+if owo == 1 then
+	bdicon = "eft_pm_system/icon_bd_16.png"
+end
+
+
 EFTPMS.Teams = { -- id, printname, icon
 	{ "bear", "BEAR", "eft_pm_system/icon_bear_16.png" },
 	{ "usec", "USEC", "eft_pm_system/icon_usec_16.png" },
 	{ "arena", "Arena", "eft_pm_system/icon_arena_16.png" },
+	{ "other", "Misc", "eft_pm_system/icon_other_16.png" },
 	{ "scav", "Scav", "eft_pm_system/icon_scav_16.png" },
-	{ "boss", "Bosses", "eft_pm_system/icon_scav_16.png" },
-	{ "other", "Other", "eft_pm_system/icon_scav_16.png" },
+	{ "boss", "Bosses", "eft_pm_system/icon_boss_16.png" },
+	{ "bd", "Black Division", bdicon },
+	{ "ruaf", "RUAF", "eft_pm_system/icon_ruaf_16.png" },
+	{ "cult", "Cultist", "eft_pm_system/icon_cultist_16.png" },
 }
 
 EFTPMS.TeamsHands = { -- id = name, wsid, fallback, EFT_CHands.<GLOBAL VAR>
@@ -43,10 +53,13 @@ local collectionid = 3749208390
 local selfid = 3749254767
 
 
-EFTPMS.SlotList = { "Head", "Torso", "Legs", "Vest" } -- important
+EFTPMS.SlotList = { "Head", "Torso", "Legs", "Vest", "Waist", "Headwear", "Facecover" } -- important
 
 EFTPMS.RemovableSlots = {
-	["Vest"] = true
+	["Vest"] = true,
+	["Waist"] = true,
+	["Headwear"] = true,
+	["Facecover"] = true,
 }
 
 local slotList = EFTPMS.SlotList

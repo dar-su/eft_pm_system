@@ -1115,8 +1115,8 @@ EFTPMS.RegisterHead({
 
 
 EFTPMS.RegisterTorso({
-	name = "Cultist (Hood Down)",
-	id = "zshared_top_cultist",
+	name = "PMC Cultist (Hood Down)",
+	id = "02_shared_top_cultist",
 	-- team = "other", 
 	category = "other", 
 	model = "models/eft/pmc/top/Top_PMC_CULTIST.mdl",
@@ -1124,8 +1124,8 @@ EFTPMS.RegisterTorso({
 	hands = "models/eft/hands/hand_pmc_cultist.mdl",
 })
 EFTPMS.RegisterTorso({
-	name = "Cultist (Hood Up)",
-	id = "zshared_top_cultist_hood",
+	name = "PMC Cultist (Hood Up)",
+	id = "02_shared_top_cultist_hood",
 	-- team = "other", 
 	category = "other", 
 	model = "models/eft/pmc/top/Top_PMC_CULTIST_hood.mdl",
@@ -1133,8 +1133,8 @@ EFTPMS.RegisterTorso({
 	hands = "models/eft/hands/hand_pmc_cultist.mdl",
 })
 EFTPMS.RegisterTorso({
-	name = "Adik Tracksuit",
-	id = "zshared_top_killa",
+	name = "PMC Adik Tracksuit",
+	id = "00_shared_top_killa",
 	-- team = "other", 
 	category = "other", 
 	model = "models/eft/pmc/top/Top_BOSS_Killa.mdl",
@@ -1142,8 +1142,8 @@ EFTPMS.RegisterTorso({
 	hands = "models/eft/hands/hand_shared_tracksuit.mdl",
 })
 EFTPMS.RegisterTorso({
-	name = "Predator Upper",
-	id = "zshared_top_knight",
+	name = "PMC Predator Upper",
+	id = "01_shared_top_knight",
 	team = "usec", 
 	category = "other", 
 	model = "models/eft/pmc/top/Top_Boss_Black_Knight.mdl",
@@ -1152,7 +1152,7 @@ EFTPMS.RegisterTorso({
 })
 EFTPMS.RegisterTorso({
 	name = "BEAR Hawaii (TGS)",
-	id = "zbear_top_hawaii_tgs",
+	id = "03_bear_top_hawaii_tgs",
 	team = "bear", 
 	category = "other", 
 	model = "models/eft/pmc/top/Top_BEAR_Hawaii_2.mdl",
@@ -1161,7 +1161,7 @@ EFTPMS.RegisterTorso({
 })
 EFTPMS.RegisterTorso({
 	name = "USEC Hawaii (TGS)",
-	id = "zusec_top_hawaii_tgs",
+	id = "03_usec_top_hawaii_tgs",
 	team = "usec", 
 	category = "other", 
 	model = "models/eft/pmc/top/Top_USEC_Hawaii_2.mdl",
